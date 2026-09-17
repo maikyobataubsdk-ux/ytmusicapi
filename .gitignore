@@ -17,3 +17,8 @@ dist
 .venv
 *.log
 *.xml
+cloudflare/src/ytmusicapi/
+cloudflare/src/pyodide_http/
+cloudflare/src/*.dist-info/
+cloudflare/src/*.dist-info
+cloudflare/src/bin/

@@ -5,8 +5,5 @@
   "compatibility_date": "2025-02-04",
   "compatibility_flags": [
     "python_workers"
-  ],
-  "build": {
-    "command": "python3 build.py"
-  }
+  ]
 }

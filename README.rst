@@ -105,6 +105,25 @@ Usage
 
 The `tests <https://github.com/sigma67/ytmusicapi/blob/main/tests/>`_ are also a great source of usage examples.
 
+Cloudflare Deployment
+---------------------
+
+You can deploy ``ytmusicapi`` as a REST API on **Cloudflare Workers** using native Python Workers support:
+
+1. Install Wrangler CLI:
+
+   .. code-block:: bash
+
+       npm install -g wrangler
+
+2. Deploy to Cloudflare Workers:
+
+   .. code-block:: bash
+
+       npx wrangler deploy
+
+For detailed instructions, endpoints reference, and usage examples, see `cloudflare/README.md <https://github.com/sigma67/ytmusicapi/blob/main/cloudflare/README.md>`_.
+
 .. end-features
 
 Contributing

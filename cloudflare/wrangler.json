@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "ytmusicapi-worker",
+  "name": "ytmusicapi",
   "main": "src/index.py",
   "compatibility_date": "2025-02-04",
   "compatibility_flags": [

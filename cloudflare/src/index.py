@@ -9,6 +9,17 @@ except ImportError:
     pass
 
 try:
+    from pyodide.ffi import to_js
+except ImportError:
+    try:
+        from pyodide import to_js  # type: ignore[no-redef]
+    except ImportError:
+
+        def to_js(obj, **kwargs):  # type: ignore[misc]
+            return obj
+
+
+try:
     from js import Headers, Response
 except ImportError:
 
@@ -25,6 +36,13 @@ except ImportError:
 
         @staticmethod
         def new(body, status=200, headers=None):
+            if isinstance(status, dict):
+                options = status
+                return Response(
+                    body,
+                    status=options.get("status", 200),
+                    headers=options.get("headers"),
+                )
             return Response(body, status=status, headers=headers)
 
 
@@ -36,7 +54,7 @@ yt_instance = None
 
 def get_yt_instance(auth_data=None):
     global yt_instance
-    if auth_data:
+    if auth_data and str(auth_data) != "undefined":
         if isinstance(auth_data, str):
             try:
                 auth_data = json.loads(auth_data)
@@ -49,15 +67,14 @@ def get_yt_instance(auth_data=None):
 
 
 def json_response(data, status=200):
-    headers = Headers.new(
-        {
-            "Content-Type": "application/json; charset=utf-8",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization, X-YT-Auth",
-        }
-    )
-    return Response.new(json.dumps(data, ensure_ascii=False), status=status, headers=headers)
+    headers_dict = {
+        "Content-Type": "application/json; charset=utf-8",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-YT-Auth",
+    }
+    options = to_js({"status": status, "headers": to_js(headers_dict)})
+    return Response.new(json.dumps(data, ensure_ascii=False), options)
 
 
 def error_response(message, status=400):
@@ -67,14 +84,13 @@ def error_response(message, status=400):
 async def on_fetch(request, env):
     # Handle CORS preflight
     if request.method == "OPTIONS":
-        headers = Headers.new(
-            {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type, Authorization, X-YT-Auth",
-            }
-        )
-        return Response.new("", status=204, headers=headers)
+        headers_dict = {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization, X-YT-Auth",
+        }
+        options = to_js({"status": 204, "headers": to_js(headers_dict)})
+        return Response.new("", options)
 
     try:
         url = urlparse(request.url)

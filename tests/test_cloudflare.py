@@ -56,3 +56,16 @@ def test_get_yt_instance_auth_json():
     auth_str = '{"authorization": "Bearer ya29.test_token", "user-agent": "Mozilla/5.0"}'
     inst = get_yt_instance(auth_str)
     assert inst is not None
+
+
+def test_get_yt_instance_undefined_auth():
+    inst = get_yt_instance("undefined")
+    assert inst is not None
+
+
+@pytest.mark.asyncio
+async def test_worker_env_undefined():
+    req = MockRequest("https://worker.dev/")
+    env = MockEnv(auth="undefined")
+    res = await on_fetch(req, env)
+    assert res.status == 200

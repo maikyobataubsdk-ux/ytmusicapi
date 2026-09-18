@@ -525,7 +525,10 @@ def send_request(request: EmscriptenRequest) -> EmscriptenResponse:
             request=request,
             response=None,
         )
-    if not hasattr(js, "XMLHttpRequest"):
+    try:
+        if not hasattr(js, "XMLHttpRequest"):
+            return send_jspi_request(request, False)
+    except AttributeError:
         return send_jspi_request(request, False)
     try:
         js_xhr = js.XMLHttpRequest.new()

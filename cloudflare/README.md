@@ -61,13 +61,18 @@ Your API will be running locally at `http://localhost:8787`.
 ### 2. Search
 - **Endpoint:** `GET /search?q=<query>&filter=<type>&limit=<number>`
 - **Parameters:**
-  - `q` (required): Search query (e.g., `Oasis Wonderwall`)
+  - `q` (required): Search query (e.g., `Ishq` or `Oasis Wonderwall`)
   - `filter` (optional): `songs`, `videos`, `albums`, `artists`, `playlists`, `community_playlists`, `featured_playlists`
   - `limit` (optional, default 20): Number of results
-- **Example:**
-  ```bash
-  curl "https://ytmusicapi-worker.<your-subdomain>.workers.dev/search?q=Radiohead&filter=songs"
-  ```
+- **Examples:**
+  - Search for song "Ishq":
+    ```bash
+    curl "https://ytmusicapi-worker.<your-subdomain>.workers.dev/search?q=Ishq&filter=songs"
+    ```
+  - Search for "Radiohead" songs:
+    ```bash
+    curl "https://ytmusicapi-worker.<your-subdomain>.workers.dev/search?q=Radiohead&filter=songs"
+    ```
 
 ### 3. Search Suggestions
 - **Endpoint:** `GET /search/suggestions?q=<query>`

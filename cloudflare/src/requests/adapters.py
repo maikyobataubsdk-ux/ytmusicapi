@@ -328,18 +328,21 @@ class HTTPAdapter(BaseAdapter):
             if not cert_loc:
                 cert_loc = DEFAULT_CA_BUNDLE_PATH
 
-            if not cert_loc or not os.path.exists(cert_loc):
+            conn.cert_reqs = "CERT_REQUIRED"
+
+            if cert_loc and os.path.exists(cert_loc):
+                if not os.path.isdir(cert_loc):
+                    conn.ca_certs = cert_loc
+                else:
+                    conn.ca_cert_dir = cert_loc
+            elif verify is not True:
                 raise OSError(
                     f"Could not find a suitable TLS CA certificate bundle, "
                     f"invalid path: {cert_loc}"
                 )
-
-            conn.cert_reqs = "CERT_REQUIRED"
-
-            if not os.path.isdir(cert_loc):
-                conn.ca_certs = cert_loc
             else:
-                conn.ca_cert_dir = cert_loc
+                conn.ca_certs = None
+                conn.ca_cert_dir = None
         else:
             conn.cert_reqs = "CERT_NONE"
             conn.ca_certs = None

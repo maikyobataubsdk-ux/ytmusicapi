@@ -145,7 +145,7 @@ class YTMusicBase:
                 locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
 
         locale_dir = Path(__file__).parent.resolve() / "locales"
-        self.lang = gettext.translation("base", localedir=locale_dir, languages=[language])
+        self.lang = gettext.translation("base", localedir=locale_dir, languages=[language], fallback=True)
         self.parser = Parser(self.lang)
 
         if user:

@@ -146,3 +146,34 @@ def test_urllib3_send_request_without_xmlhttprequest(monkeypatch):
     resp = fetch_mod.send_request(dummy_req)
     assert resp.status_code == 200
     assert len(called_jspi) == 1
+
+
+def test_fetch_has_jspi_attribute_error(monkeypatch):
+    import sys
+    import types
+    import cloudflare.src.urllib3.contrib.emscripten.fetch as fetch_mod
+
+    mock_ffi = types.ModuleType("pyodide.ffi")
+    monkeypatch.setitem(sys.modules, "pyodide.ffi", mock_ffi)
+
+    assert fetch_mod.has_jspi() is False
+
+
+def test_fetch_run_sync_with_timeout_attribute_error(monkeypatch):
+    import sys
+    import types
+    import cloudflare.src.urllib3.contrib.emscripten.fetch as fetch_mod
+
+    mock_ffi = types.ModuleType("pyodide.ffi")
+    monkeypatch.setitem(sys.modules, "pyodide.ffi", mock_ffi)
+
+    mock_abort = types.SimpleNamespace(abort=types.SimpleNamespace(bind=lambda x: None))
+
+    with pytest.raises(fetch_mod._RequestError, match="run_sync unavailable in pyodide.ffi"):
+        fetch_mod._run_sync_with_timeout(
+            promise=None,
+            timeout=0,
+            js_abort_controller=mock_abort,
+            request=None,
+            response=None,
+        )

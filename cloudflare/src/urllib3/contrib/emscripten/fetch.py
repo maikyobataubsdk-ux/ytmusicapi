@@ -689,6 +689,12 @@ def _run_sync_with_timeout(
         # run_sync here uses WebAssembly JavaScript Promise Integration to
         # suspend python until the JavaScript promise resolves.
         return run_sync(promise)
+    except (ImportError, AttributeError) as err:
+        raise _RequestError(
+            message=f"run_sync unavailable in pyodide.ffi: {err}",
+            request=request,
+            response=response,
+        )
     except JsException as err:
         if err.name == "AbortError":
             raise _TimeoutError(
@@ -716,7 +722,7 @@ def has_jspi() -> bool:
         from pyodide.ffi import can_run_sync, run_sync  # noqa: F401
 
         return bool(can_run_sync())
-    except ImportError:
+    except (ImportError, AttributeError):
         return False
 
 

@@ -69,3 +69,41 @@ async def test_worker_env_undefined():
     env = MockEnv(auth="undefined")
     res = await on_fetch(req, env)
     assert res.status == 200
+
+
+def test_cert_verify_default_non_existent_path(monkeypatch):
+    import cloudflare.src.requests.adapters as adapters
+    from cloudflare.src.requests.adapters import HTTPAdapter
+
+    class MockConn:
+        cert_reqs = None
+        ca_certs = None
+        ca_cert_dir = None
+
+    adapter = HTTPAdapter()
+    conn = MockConn()
+
+    # Mock DEFAULT_CA_BUNDLE_PATH to a path that does not exist on disk
+    monkeypatch.setattr(adapters, "DEFAULT_CA_BUNDLE_PATH", "/session/metadata/certifi/cacert.pem")
+
+    # cert_verify with verify=True when default CA path doesn't exist should keep CERT_REQUIRED
+    adapter.cert_verify(conn, "https://example.com", verify=True, cert=None)
+    assert conn.cert_reqs == "CERT_REQUIRED"
+    assert conn.ca_certs is None
+    assert conn.ca_cert_dir is None
+
+
+def test_cert_verify_custom_non_existent_path():
+    from cloudflare.src.requests.adapters import HTTPAdapter
+
+    class MockConn:
+        cert_reqs = None
+        ca_certs = None
+        ca_cert_dir = None
+
+    adapter = HTTPAdapter()
+    conn = MockConn()
+
+    # cert_verify with explicit custom string path that doesn't exist should raise OSError
+    with pytest.raises(OSError, match="Could not find a suitable TLS CA certificate bundle"):
+        adapter.cert_verify(conn, "https://example.com", verify="/nonexistent/custom/ca.pem", cert=None)

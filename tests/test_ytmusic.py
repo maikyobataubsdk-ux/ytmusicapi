@@ -12,6 +12,12 @@ def test_ytmusic_context():
         assert isinstance(yt, YTMusic)
 
 
+def test_ytmusic_translation_fallback(monkeypatch, tmp_path):
+    monkeypatch.setattr("ytmusicapi.ytmusic.Path", lambda *args: tmp_path / "nonexistent")
+    yt = YTMusic(requests_session=False)
+    assert isinstance(yt, YTMusic)
+
+
 def test_ytmusic_auth_error():
     with pytest.raises(YTMusicUserError, match="Invalid auth"):
         YTMusic(auth="def")

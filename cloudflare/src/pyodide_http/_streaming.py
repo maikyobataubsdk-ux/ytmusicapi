@@ -22,7 +22,10 @@ request into a buffer and then returning it. it shows a warning in the javascrip
 import io
 import json
 import js
-from js import crossOriginIsolated
+try:
+    from js import crossOriginIsolated
+except (ImportError, AttributeError):
+    crossOriginIsolated = False
 from pyodide.ffi import to_js
 from urllib.request import Request
 

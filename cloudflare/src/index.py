@@ -5,15 +5,15 @@ try:
     import pyodide_http
 
     pyodide_http.patch_all()
-except ImportError:
+except (ImportError, AttributeError):
     pass
 
 try:
     from pyodide.ffi import to_js
-except ImportError:
+except (ImportError, AttributeError):
     try:
         from pyodide import to_js  # type: ignore[no-redef]
-    except ImportError:
+    except (ImportError, AttributeError):
 
         def to_js(obj, **kwargs):  # type: ignore[misc]
             return obj
@@ -21,7 +21,7 @@ except ImportError:
 
 try:
     from js import Headers, Response
-except ImportError:
+except (ImportError, AttributeError):
 
     class Headers:  # type: ignore[no-redef]
         @staticmethod

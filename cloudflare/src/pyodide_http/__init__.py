@@ -1,8 +1,8 @@
 try:
-    from js import XMLHttpRequest
+    from js import XMLHttpRequest  # type: ignore[import-not-found]
 
     _SHOULD_PATCH = True
-except ImportError:
+except (ImportError, AttributeError):
     _SHOULD_PATCH = False
 
 __version__ = "0.2.2"

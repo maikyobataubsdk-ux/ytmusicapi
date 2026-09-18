@@ -42,13 +42,27 @@ from email.parser import Parser
 from importlib.resources import files
 from typing import TYPE_CHECKING, Any
 
-import js  # type: ignore[import-not-found]
-from pyodide.ffi import (  # type: ignore[import-not-found]
-    JsArray,
-    JsException,
-    JsProxy,
-    to_js,
-)
+try:
+    import js  # type: ignore[import-not-found]
+except ImportError:
+    import types
+
+    js = types.ModuleType("js")  # type: ignore[assignment]
+
+try:
+    from pyodide.ffi import (  # type: ignore[import-not-found]
+        JsArray,
+        JsException,
+        JsProxy,
+        to_js,
+    )
+except ImportError:
+    JsArray = Any  # type: ignore[misc,assignment]
+    JsException = Exception  # type: ignore[misc,assignment]
+    JsProxy = Any  # type: ignore[misc,assignment]
+
+    def to_js(obj, **kwargs):  # type: ignore[misc]
+        return obj
 
 if TYPE_CHECKING:
     from typing_extensions import Buffer
@@ -458,6 +472,8 @@ def send_streaming_request(request: EmscriptenRequest) -> EmscriptenResponse | N
 
     if _fetcher and streaming_ready():
         return _fetcher.send(request)
+    elif not hasattr(js, "XMLHttpRequest"):
+        return send_jspi_request(request, True)
     else:
         _show_streaming_warning()
         return None
@@ -471,7 +487,8 @@ def _show_timeout_warning() -> None:
     if not _SHOWN_TIMEOUT_WARNING:
         _SHOWN_TIMEOUT_WARNING = True
         message = "Warning: Timeout is not available on main browser thread"
-        js.console.warn(message)
+        if hasattr(js, "console") and hasattr(getattr(js, "console", None), "warn"):
+            js.console.warn(message)
 
 
 _SHOWN_STREAMING_WARNING = False
@@ -491,9 +508,12 @@ def _show_streaming_warning() -> None:
         if streaming_ready() is False:
             message += """ Streaming fetch worker isn't ready. If you want to be sure that streaming fetch
 is working, you need to call: 'await urllib3.contrib.emscripten.fetch.wait_for_streaming_ready()`"""
-        from js import console
+        try:
+            from js import console
 
-        console.warn(message)
+            console.warn(message)
+        except (ImportError, AttributeError):
+            pass
 
 
 def send_request(request: EmscriptenRequest) -> EmscriptenResponse:
@@ -505,6 +525,8 @@ def send_request(request: EmscriptenRequest) -> EmscriptenResponse:
             request=request,
             response=None,
         )
+    if not hasattr(js, "XMLHttpRequest"):
+        return send_jspi_request(request, False)
     try:
         js_xhr = js.XMLHttpRequest.new()
 
@@ -535,8 +557,10 @@ def send_request(request: EmscriptenRequest) -> EmscriptenResponse:
         return EmscriptenResponse(
             status_code=js_xhr.status, headers=headers, body=body, request=request
         )
-    except JsException as err:
-        if err.name == "TimeoutError":
+    except (JsException, AttributeError) as err:
+        if isinstance(err, AttributeError):
+            return send_jspi_request(request, False)
+        elif err.name == "TimeoutError":
             raise _TimeoutError(err.message, request=request)
         elif err.name == "NetworkError":
             raise _RequestError(err.message, request=request)

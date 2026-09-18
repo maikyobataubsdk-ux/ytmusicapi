@@ -65,29 +65,38 @@ def show_streaming_warning():
     global _SHOWN_WARNING
     if not _SHOWN_WARNING:
         _SHOWN_WARNING = True
-        from js import console
+        try:
+            from js import console
 
-        console.warn(
-            "requests can't stream data in the main thread, using non-streaming fallback"
-        )
+            console.warn(
+                "requests can't stream data in the main thread, using non-streaming fallback"
+            )
+        except (ImportError, AttributeError):
+            pass
 
 
 def send(request: Request, stream: bool = False) -> Response:
     if request.params:
-        from js import URLSearchParams
+        try:
+            from js import URLSearchParams
 
-        params = URLSearchParams.new()
-        for k, v in request.params.items():
-            params.append(k, v)
-        request.url += "?" + params.toString()
+            params = URLSearchParams.new()
+            for k, v in request.params.items():
+                params.append(k, v)
+            request.url += "?" + params.toString()
+        except (ImportError, AttributeError):
+            pass
 
-    from js import XMLHttpRequest
+    try:
+        from js import XMLHttpRequest
+    except (ImportError, AttributeError):
+        raise _RequestError("XMLHttpRequest is not supported in this environment")
 
     try:
         from js import importScripts
 
         _IN_WORKER = True
-    except ImportError:
+    except (ImportError, AttributeError):
         _IN_WORKER = False
     # support for streaming workers (in worker )
     if stream:
